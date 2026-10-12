@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoRoute Fleet Console</title>
+  <meta name="description" content="Sustainable logistics prototype: eco-route optimisation, carbon analytics, fleet status and trip simulation." />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="dot"></span> EcoRoute <small>Fleet Console · demo data</small></div>
+  <div class="seg" role="tablist">
+    <button id="modeFleet" class="on" role="tab" aria-selected="true">Fleet Manager</button>
+    <button id="modeDriver" role="tab" aria-selected="false">Driver Companion</button>
+  </div>
+</header>
+
+<!-- FLEET MANAGER -->
+<main id="fleetView">
+  <section class="kpis">
+    <div class="card kpi">
+      <div class="label">Carbon saved (today)</div>
+      <div class="value eco" id="kCO2">–</div>
+      <div class="sub" id="kCO2sub">kg CO₂ vs. diesel baseline</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Fuel saved</div>
+      <div class="value" id="kFuel">–</div>
+      <div class="sub">litres of diesel avoided</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Energy efficiency gain</div>
+      <div class="value" id="kEnergy">–</div>
+      <div class="sub">eco route vs. standard route</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Fleet active</div>
+      <div class="value" id="kFleet">–</div>
+      <div class="sub" id="kFleetSub">vehicles</div>
+    </div>
+  </section>
+
+  <section class="grid-main">
+    <div>
+      <div id="map" aria-label="Delivery route map"></div>
+      <div class="legend">
+        <span>━ Eco route (vehicle colour)</span>
+        <span>┄ Standard diesel route</span>
+        <span>⚡ EV charger</span>
+        <span>■ Hub · ● Delivery stop</span>
+      </div>
+    </div>
+
+    <aside class="card">
+      <h3>Route optimisation</h3>
+      <div class="ctrl">
+        <div class="ctrl-head"><span>Payload weight</span><b id="vPayload">50%</b></div>
+        <input type="range" id="pPayload" min="0" max="100" value="50" />
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><span>Elevation impact</span><b id="vElev">40%</b></div>
+        <input type="range" id="pElev" min="0" max="100" value="40" />
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><span>Traffic avoidance</span><b id="vTraffic">60%</b></div>
+        <input type="range" id="pTraffic" min="0" max="100" value="60" />
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-head"><span>EV preference</span><b id="vEv">70%</b></div>
+        <input type="range" id="pEv" min="0" max="100" value="70" />
+      </div>
+      <p class="muted" style="margin:0">
+        Sliders recalculate routes, emissions and KPIs live. Traffic avoidance widens the detour around congestion;
+        EV preference shifts more distance to electric drive and adds a charging stop for low-battery vans.
+      </p>
+    </aside>
+  </section>
+
+  <section class="lower">
+    <div class="card">
+      <h3>Fleet status</h3>
+      <div class="fleet" id="fleetCards"></div>
+    </div>
+
+    <div class="card">
+      <h3>Live carbon analytics · kg CO₂ per vehicle</h3>
+      <div id="chart"></div>
+      <p class="muted" style="margin:10px 0 0">
+        <span style="color:var(--diesel)">■</span> diesel baseline &nbsp; <span style="color:var(--eco)">■</span> eco route
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Trip simulator · <span id="simVehicle" style="color:var(--eco)">–</span></h3>
+      <div class="btns">
+        <button class="btn primary" id="playBtn">▶ Play</button>
+        <button class="btn" id="resetBtn">↺ Reset</button>
+      </div>
+      <div class="progress"><i id="simBar"></i></div>
+      <div class="sim-stats">
+        <div>Progress<b id="simPct">0%</b></div>
+        <div>Remaining<b id="simRem">–</b></div>
+        <div>Battery<b id="simBat">–</b></div>
+        <div>Next stop<b id="simNext">–</b></div>
+      </div>
+      <p class="muted" style="margin:12px 0 0">Click a vehicle card to choose the trip to simulate.</p>
+    </div>
+  </section>
+</main>
+
+<!-- DRIVER COMPANION -->
+<main id="driverView" class="hidden">
+  <div id="driver">
+    <div class="d-top"><span id="dVehicle">–</span><span id="dLeftTop">–</span></div>
+    <div class="d-hero">
+      <div class="turn" id="dTurn">Next stop</div>
+      <div class="step" id="dStep">–</div>
+      <div class="dist" id="dDist">–</div>
+      <div style="color:#a7f3c4;font-size:14px">to next point</div>
+    </div>
+    <div class="d-next"><small>Then</small><span id="dThen">–</span></div>
+    <div class="d-stats">
+      <div><small>Trip left</small><b id="dLeft">–</b></div>
+      <div><small>ETA</small><b id="dEta">–</b></div>
+      <div><small>Battery</small><b id="dBat">–</b></div>
+    </div>
+    <div class="progress" style="margin-top:16px"><i id="dBar"></i></div>
+    <div class="d-controls"><button class="btn primary" id="dPlay">▶ Start trip</button></div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
